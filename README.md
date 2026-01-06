@@ -6,7 +6,7 @@ The in-memory contiguous buffers allow constant-time random access to large, str
 
 ## Project status:
 
-IPC serialization / deserialization has been tested against the Arrow integration testing JSON files, using the following strategy:
+IPC deserialization has been tested against the Arrow integration testing JSON files (gold test files), using the following strategy:
 
 1. Read the [Arrow cpp21 generated files](https://github.com/apache/arrow-testing/tree/master/data/arrow-ipc-stream/integration/cpp-21.0.0) into memory.
 2. Encode the results to Codable & Equatable structs that can read and write the [test data format.](https://arrow.apache.org/docs/format/Integration.html#json-test-data-format).
@@ -125,7 +125,7 @@ typealias ArrowArrayUtf8 = ArrowArrayVariable<
   FixedWidthBufferIPC<Int32>,
   VariableLengthBufferIPC<String>
 >
-``
+```
 
 ## Relationship to Arrow-Swift
 

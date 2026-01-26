@@ -14,7 +14,7 @@
 // limitations under the License.
 
 public class ArrowColumn {
-  let dataHolder: any ChunkedArrayProtocol
+  public let dataHolder: any ChunkedArrayProtocol
   public let field: ArrowField
   public var length: Int { self.dataHolder.length }
   public var nullCount: Int { self.dataHolder.nullCount }

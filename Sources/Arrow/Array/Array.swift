@@ -54,7 +54,7 @@ extension ArrowArrayBinaryView: StringArrayProtocol where ItemType == String {}
 /// A type which provides access to arrays of `Data`,  with opaque offset types.
 ///
 /// The underlying array may have fixed or variable-length items.
-protocol BinaryArrayProtocol: AnyArrowArrayProtocol {
+public protocol BinaryArrayProtocol: AnyArrowArrayProtocol {
   subscript(index: Int) -> Data? { get }
 }
 extension ArrowArrayFixedSizeBinary: BinaryArrayProtocol {}

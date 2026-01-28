@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import Arrow
 import Foundation
 
 func fromProto(
@@ -92,20 +93,15 @@ func fromProto(
     arrowType = .timestamp(arrowUnit, timestampType.timezone)
   case .struct_:
     var children: [ArrowField] = []
-    for index in 0..<field.childrenCount {
-      guard let childField = field.children(at: index) else {
-        throw .init(
-          .invalid("Missing childe at index: \(index) for field: \(field)"))
-      }
-      children.append(try fromProto(field: childField))
+    for child in field.children {
+      children.append(try fromProto(field: child))
     }
     arrowType = .strct(children)
   case .list:
-    guard field.childrenCount == 1, let childField = field.children(at: 0)
-    else {
+    guard field.children.count == 1 else {
       throw .init(.invalid("Expected a single child for list field: \(field)"))
     }
-    let childArrowField = try fromProto(field: childField)
+    let childArrowField = try fromProto(field: field.children[0])
     arrowType = .list(childArrowField)
   default:
     throw .init(.invalid("Unsupported FlatBuffer field type: \(field)"))

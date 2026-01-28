@@ -91,10 +91,7 @@ public struct ArrowReader {
     var recordBatches: [RecordBatch] = []
 
     // MARK: Record batch parsing
-    for index in 0..<footer.recordBatchesCount {
-      guard let block: FBlock = footer.recordBatches(at: index) else {
-        throw ArrowError(.invalid("Missing record batch at index \(index)"))
-      }
+    for block in footer.recordBatches {
 
       let (message, offset) = try data.withParserSpan { input in
         try input.seek(toAbsoluteOffset: block.offset)
@@ -157,8 +154,8 @@ public struct ArrowReader {
     bufferIndex: inout Int32,
     variadicBufferIndex: inout Int32,
   ) throws(ArrowError) -> AnyArrowArrayProtocol {
-    guard nodeIndex < rbMessage.nodesCount,
-      let node = rbMessage.nodes(at: nodeIndex)
+    guard nodeIndex < rbMessage.nodes.count,
+      let node = rbMessage.nodes[ifInBounds: nodeIndex]
     else {
       throw ArrowError(.invalid("Missing node at index \(nodeIndex)"))
     }
@@ -325,8 +322,12 @@ public struct ArrowReader {
       let viewsBufferTyped = FixedWidthBufferIPC<BinaryView>(
         buffer: viewsBuffer)
 
-      let variadicCount = rbMessage.variadicBufferCounts(
-        at: variadicBufferIndex)
+      guard
+        let variadicCount = rbMessage.variadicBufferCounts[
+          ifInBounds: variadicBufferIndex]
+      else {
+        throw .init(.invalid("Unable to get variadic buffer count."))
+      }
       variadicBufferIndex += 1
 
       switch arrowType {
@@ -488,11 +489,12 @@ public struct ArrowReader {
     offset: Int64,
     data: Data
   ) throws(ArrowError) -> FileDataBuffer {
-    guard index < message.buffersCount, let buffer = message.buffers(at: index)
+    guard index < message.buffers.count,
+      let buffer = message.buffers[ifInBounds: index]
     else {
       throw .init(
         .invalid(
-          "Buffer index \(index) requested for message with \(message.buffersCount) buffers."
+          "Buffer index \(index) requested for message with \(message.buffers.count) buffers."
         ))
     }
     index += 1
@@ -534,18 +536,13 @@ public struct ArrowReader {
   }
 
   private func loadSchema(schema: FSchema) throws(ArrowError) -> ArrowSchema {
-    let metadata = (0..<schema.customMetadataCount)
-      .reduce(into: [String: String]()) { dict, index in
-        guard let customMetadata = schema.customMetadata(at: index),
-          let key = customMetadata.key
-        else { return }
-        dict[key] = customMetadata.value
-      }
+    let metadata = schema.customMetadata.reduce(into: [String: String]()) {
+      dict, kv in
+      guard let key = kv.key else { return }
+      dict[key] = kv.value
+    }
     var fields: [ArrowField] = []
-    for index in 0..<schema.fieldsCount {
-      guard let field = schema.fields(at: index) else {
-        throw .init(.invalid("Field not found at index: \(index)"))
-      }
+    for field in schema.fields {
       let arrowField = try ArrowField.parse(from: field)
       fields.append(arrowField)
     }

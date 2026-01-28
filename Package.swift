@@ -29,7 +29,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/google/flatbuffers.git",
-      exact: "25.2.10"
+      exact: "25.12.19"
     ),
     .package(
       url: "https://github.com/apple/swift-atomics.git",

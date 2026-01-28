@@ -10,7 +10,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Build FlatBuffers from source (ARM-compatible)
-ENV FLATBUFFERS_VERSION=25.9.23
+ENV FLATBUFFERS_VERSION=25.12.19
 RUN git clone --depth 1 --branch v${FLATBUFFERS_VERSION} https://github.com/google/flatbuffers.git && \
     cd flatbuffers && \
     cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release . && \

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 extension ArrowField {
-  
+
   /// Return the GeoArrow extension type if set, else returns nil.
   public var geoArrowType: GeoArrowType? {
     metadata["ARROW:extension:name"].flatMap { GeoArrowType(rawValue: $0) }

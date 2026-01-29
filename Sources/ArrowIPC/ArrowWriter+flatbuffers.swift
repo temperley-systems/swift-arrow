@@ -112,10 +112,16 @@ extension ArrowWriter {
       return FFloatingPoint.createFloatingPoint(&fbb, precision: .double)
     case .utf8:
       return FUtf8.endUtf8(&fbb, start: FUtf8.startUtf8(&fbb))
+    case .largeUtf8:
+      return FLargeUtf8.endLargeUtf8(
+        &fbb, start: FLargeUtf8.startLargeUtf8(&fbb))
     case .utf8View:
       return FUtf8View.endUtf8View(&fbb, start: FUtf8View.startUtf8View(&fbb))
     case .binary:
       return FBinary.endBinary(&fbb, start: FBinary.startBinary(&fbb))
+    case .largeBinary:
+      return FLargeBinary.endLargeBinary(
+        &fbb, start: FLargeBinary.startLargeBinary(&fbb))
     case .binaryView:
       return FBinaryView.endBinaryView(
         &fbb, start: FBinaryView.startBinaryView(&fbb))

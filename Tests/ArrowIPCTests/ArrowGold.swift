@@ -137,7 +137,7 @@ struct ArrowGold: Codable, Equatable {
     let name: String
     let count: Int
     let validity: [Int]?
-    let offset: [Int]?
+    let offset: [Int64]?  // Change to Int64 to handle large values
     let data: [DataValue]?
     let views: [View?]?
     let variadicDataBuffers: [String]?
@@ -152,6 +152,62 @@ struct ArrowGold: Codable, Equatable {
       case views = "VIEWS"
       case variadicDataBuffers = "VARIADIC_DATA_BUFFERS"
       case children
+    }
+
+    init(
+      name: String,
+      count: Int,
+      validity: [Int]? = nil,
+      offset: [Int64]? = nil,
+      data: [DataValue]? = nil,
+      views: [View?]? = nil,
+      variadicDataBuffers: [String]? = nil,
+      children: [Column]? = nil
+    ) {
+      self.name = name
+      self.count = count
+      self.validity = validity
+      self.offset = offset
+      self.data = data
+      self.views = views
+      self.variadicDataBuffers = variadicDataBuffers
+      self.children = children
+    }
+
+    // The custom decoder is required because 64 bit offsets are encoded
+    // as Strings presumably because some JSON libs can't handle it.
+    init(from decoder: Decoder) throws {
+      let container = try decoder.container(keyedBy: CodingKeys.self)
+      name = try container.decode(String.self, forKey: .name)
+      count = try container.decode(Int.self, forKey: .count)
+      validity = try container.decodeIfPresent([Int].self, forKey: .validity)
+      data = try container.decodeIfPresent([DataValue].self, forKey: .data)
+      views = try container.decodeIfPresent([View?].self, forKey: .views)
+      variadicDataBuffers = try container.decodeIfPresent(
+        [String].self, forKey: .variadicDataBuffers)
+      children = try container.decodeIfPresent([Column].self, forKey: .children)
+
+      // Decode offset as either [Int64] or [String], converting strings to Int64
+      if let offsetInts = try? container.decodeIfPresent(
+        [Int64].self, forKey: .offset)
+      {
+        offset = offsetInts
+      } else if let offsetStrings = try? container.decodeIfPresent(
+        [String].self, forKey: .offset)
+      {
+        offset = try offsetStrings.map { str in
+          guard let value = Int64(str) else {
+            throw DecodingError.dataCorruptedError(
+              forKey: .offset,
+              in: container,
+              debugDescription: "Invalid integer string: \(str)"
+            )
+          }
+          return value
+        }
+      } else {
+        offset = nil
+      }
     }
   }
 

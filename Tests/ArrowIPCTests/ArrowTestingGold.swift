@@ -36,12 +36,14 @@ struct ArrowTestingGold {
     "generated_custom_metadata",
     "generated_nested",
     "generated_recursive_nested",
+    "generated_large_binary",
     "generated_map",
     "generated_datetime",
     "generated_duration",
     "generated_primitive",
     "generated_primitive_no_batches",
     "generated_primitive_zerolength",
+    "generated_duplicate_fieldnames",
   ]
 
   static let allTestCases: [String] = [
@@ -78,6 +80,20 @@ struct ArrowTestingGold {
     "generated_run_end_encoded",
     "generated_union",
   ]
+
+  @Test
+  func readFile() throws {
+
+    let name = "generated_large_binary"
+    let (testFile, testCase) = try loadTestCase(
+      name: name, fileExtension: "arrow_file")
+    let arrowReader = try ArrowReader(url: testFile)
+    let (arrowSchema, recordBatches) = try arrowReader.read()
+    #expect(testCase.batches.count == recordBatches.count)
+    try validateReadResults(
+      testCase: testCase, recordBatches: recordBatches, arrowSchema: arrowSchema
+    )
+  }
 
   @Test(arguments: testCases)
   func readStream(name: String) throws {

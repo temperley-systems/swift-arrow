@@ -20,7 +20,13 @@ typealias FSchema = org_apache_arrow_flatbuf_Schema
 typealias FBuffer = org_apache_arrow_flatbuf_Buffer
 typealias FFieldNode = org_apache_arrow_flatbuf_FieldNode
 typealias FRecordBatch = org_apache_arrow_flatbuf_RecordBatch
+typealias FMessageHeader = org_apache_arrow_flatbuf_MessageHeader
+typealias FKeyValue = org_apache_arrow_flatbuf_KeyValue
+
+// MARK: Top level type.
 typealias FType = org_apache_arrow_flatbuf_Type_
+
+// MARK: Primitive types.
 typealias FFloatingPoint = org_apache_arrow_flatbuf_FloatingPoint
 typealias FInt = org_apache_arrow_flatbuf_Int
 typealias FBool = org_apache_arrow_flatbuf_Bool
@@ -29,16 +35,18 @@ typealias FTime = org_apache_arrow_flatbuf_Time
 typealias FDuration = org_apache_arrow_flatbuf_Duration
 typealias FTimestamp = org_apache_arrow_flatbuf_Timestamp
 typealias FTimeUnit = org_apache_arrow_flatbuf_TimeUnit
+
+// MARK: Nested types.
 typealias FStruct = org_apache_arrow_flatbuf_Struct_
 typealias FList = org_apache_arrow_flatbuf_List
+typealias FMap = org_apache_arrow_flatbuf_Map
+typealias FFixedSizeList = org_apache_arrow_flatbuf_FixedSizeList
 
+// MARK: Binary types.
+typealias FBinary = org_apache_arrow_flatbuf_Binary
+typealias FLargeBinary = org_apache_arrow_flatbuf_LargeBinary
+typealias FBinaryView = org_apache_arrow_flatbuf_BinaryView
 typealias FUtf8 = org_apache_arrow_flatbuf_Utf8
 typealias FUtf8View = org_apache_arrow_flatbuf_Utf8View
-typealias FBinary = org_apache_arrow_flatbuf_Binary
-typealias FBinaryView = org_apache_arrow_flatbuf_BinaryView
+typealias FLargeUtf8 = org_apache_arrow_flatbuf_LargeUtf8
 typealias FFixedSizeBinary = org_apache_arrow_flatbuf_FixedSizeBinary
-typealias FFixedSizeList = org_apache_arrow_flatbuf_FixedSizeList
-typealias FMap = org_apache_arrow_flatbuf_Map
-
-typealias FMessageHeader = org_apache_arrow_flatbuf_MessageHeader
-typealias FKeyValue = org_apache_arrow_flatbuf_KeyValue

@@ -37,17 +37,17 @@ func encodeColumn(
   }
   // Offsets are taken directly from the buffers. Generating them from the
   // public API would mean replicating edge cases here.
-  let offsets: [Int]? =
+  let offsets: [Int64]? =
     switch field.type {
     case .binary, .utf8, .list(_), .map(_, _):
       array.buffers[1].withUnsafeBytes { ptr in
         let offsets = ptr.bindMemory(to: Int32.self)
-        return Array(offsets).map(Int.init)
+        return Array(offsets).map(Int64.init)
       }
     case .largeBinary, .largeUtf8, .largeList(_):
       array.buffers[1].withUnsafeBytes { ptr in
         let offsets = ptr.bindMemory(to: Int64.self)
-        return Array(offsets).map(Int.init)
+        return Array(offsets)
       }
     default: nil
     }
@@ -143,9 +143,13 @@ func encodeColumn(
       data = try extractIntData(from: array, expectedType: Int64.self)
     case .binary:
       try extractBinaryData(from: array, into: &data)
+    case .largeBinary:
+      try extractBinaryData(from: array, into: &data)
     case .fixedSizeBinary(_):
       try extractBinaryData(from: array, into: &data)
     case .utf8:
+      try extractUtf8Data(from: array, into: &data)
+    case .largeUtf8:
       try extractUtf8Data(from: array, into: &data)
     case .binaryView, .utf8View:
       try extractBinaryViewData(

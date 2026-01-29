@@ -98,10 +98,14 @@ extension ArrowType {
       }
     case .utf8:
       return .utf8
+    case .largeutf8:
+      return .largeUtf8
     case .utf8view:
       return .utf8View
     case .binary:
       return .binary
+    case .largebinary:
+      return .largeBinary
     case .binaryview:
       return .binaryView
     case .fixedsizebinary:
@@ -222,10 +226,14 @@ extension ArrowType {
       return .floatingpoint
     case .binary:
       return .binary
+    case .largeBinary:
+      return .largebinary
     case .binaryView:
       return .binaryview
     case .utf8:
       return .utf8
+    case .largeUtf8:
+      return .largeutf8
     case .utf8View:
       return .utf8view
     case .boolean:

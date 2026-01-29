@@ -23,11 +23,10 @@ class ArrowStreamReader {
 
     let message: FMessage? = try data.withParserSpan { input in
       try input.seek(toAbsoluteOffset: offset)
-      let marker = try UInt32(parsingLittleEndian: &input)
-      if marker != continuationMarker {
-        throw ArrowError(.invalid("Missing continuation marker."))
-      }
-      let messageLength = try UInt32(parsingLittleEndian: &input)
+
+      let header = try MessageHeader(parsing: &input)
+      let messageLength = header.metadataLength
+
       if messageLength == 0 {
         return nil
       }
@@ -63,7 +62,6 @@ class ArrowStreamReader {
         guard let arrowSchema else {
           throw ArrowError(.invalid("ArrowSchema not available."))
         }
-        print("starting record batch load at offset \(offset)")
         let recordBatch = try ArrowReader.loadRecordBatch(
           data: data,
           arrowSchema: arrowSchema,
@@ -72,7 +70,6 @@ class ArrowStreamReader {
         )
         offset += message.bodyLength
         recordBatches.append(recordBatch)
-        print("appended record batch at offset \(offset)")
       default:
         throw ArrowError(.notImplemented("Unexpected message header type."))
       }

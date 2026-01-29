@@ -87,13 +87,14 @@ public struct ArrowReader {
     guard let schema = footer.schema else {
       throw ArrowError(.invalid("Missing schema in footer"))
     }
-    let arrowSchema = try loadSchema(schema: schema)
+    let arrowSchema = try Self.loadSchema(schema: schema)
     var recordBatches: [RecordBatch] = []
 
     // MARK: Record batch parsing
     for block in footer.recordBatches {
 
       let (message, offset) = try data.withParserSpan { input in
+        // TODO: This could be factored into a random access API
         try input.seek(toAbsoluteOffset: block.offset)
         let marker = try UInt32(parsingLittleEndian: &input)
         if marker != continuationMarker {
@@ -120,33 +121,52 @@ public struct ArrowReader {
       guard footer.schema != nil else {
         throw ArrowError(.invalid("Expected schema in footer"))
       }
-      // MARK: Load arrays
-      var arrays: [AnyArrowArrayProtocol] = .init()
-      var nodeIndex: Int32 = 0
-      var bufferIndex: Int32 = 0
-      var variadicBufferIndex: Int32 = 0
 
-      for field in arrowSchema.fields {
-
-        let array = try loadField(
-          rbMessage: rbMessage,
-          field: field,
-          offset: offset,
-          nodeIndex: &nodeIndex,
-          bufferIndex: &bufferIndex,
-          variadicBufferIndex: &variadicBufferIndex
-        )
-        arrays.append(array)
-      }
-
-      let recordBatch = RecordBatch(schema: arrowSchema, columns: arrays)
+      // MARK: Load batch.
+      let recordBatch = try Self.loadRecordBatch(
+        data: self.data,
+        arrowSchema: arrowSchema,
+        rbMessage: rbMessage,
+        offset: offset,
+      )
       recordBatches.append(recordBatch)
     }
 
     return (arrowSchema, recordBatches)
   }
 
-  func loadField(
+  static func loadRecordBatch(
+    data: Data,
+    arrowSchema: ArrowSchema,
+    rbMessage: FRecordBatch,
+    offset: Int64
+  ) throws -> RecordBatch {
+
+    // MARK: Load arrays
+    var arrays: [AnyArrowArrayProtocol] = .init()
+    var nodeIndex: Int32 = 0
+    var bufferIndex: Int32 = 0
+    var variadicBufferIndex: Int32 = 0
+
+    for field in arrowSchema.fields {
+
+      let array = try Self.loadField(
+        data: data,
+        rbMessage: rbMessage,
+        field: field,
+        offset: offset,
+        nodeIndex: &nodeIndex,
+        bufferIndex: &bufferIndex,
+        variadicBufferIndex: &variadicBufferIndex
+      )
+      arrays.append(array)
+    }
+
+    return .init(schema: arrowSchema, columns: arrays)
+  }
+
+  static func loadField(
+    data: Data,
     rbMessage: FRecordBatch,
     field: ArrowField,
     offset: Int64,
@@ -245,7 +265,7 @@ public struct ArrowReader {
           length: length, elementType: UInt64.self,
           nullBuffer: nullBuffer, buffer: buffer1)
       default:
-        throw .init(.notImplemented)
+        throw .init(.notImplemented("\(arrowType)"))
       }
     } else if arrowType.isTemporal {
       let buffer1 = try nextBuffer(
@@ -280,7 +300,7 @@ public struct ArrowReader {
           length: length, elementType: Int32.self,
           nullBuffer: nullBuffer, buffer: buffer1)
       default:
-        throw ArrowError(.notImplemented)
+        throw .init(.notImplemented("\(arrowType)"))
       }
     } else if arrowType.isVariable {
       let buffer1 = try nextBuffer(
@@ -310,7 +330,7 @@ public struct ArrowReader {
           valueBuffer: valueBufferTyped
         )
       } else {
-        throw .init(.notImplemented)
+        throw .init(.notImplemented("\(arrowType)"))
       }
     } else if arrowType.isBinaryView {
       let viewsBuffer = try nextBuffer(
@@ -373,7 +393,7 @@ public struct ArrowReader {
           dataBuffers: dataBuffers
         )
       default:
-        throw .init(.notImplemented)
+        throw .init(.notImplemented("\(arrowType)"))
       }
     } else if arrowType.isNested {
       switch arrowType {
@@ -386,6 +406,7 @@ public struct ArrowReader {
         )
 
         let array: AnyArrowArrayProtocol = try loadField(
+          data: data,
           rbMessage: rbMessage,
           field: childField,
           offset: offset,
@@ -431,6 +452,7 @@ public struct ArrowReader {
         )
       case .fixedSizeList(let field, let listSize):
         let array: AnyArrowArrayProtocol = try loadField(
+          data: data,
           rbMessage: rbMessage,
           field: field,
           offset: offset,
@@ -448,6 +470,7 @@ public struct ArrowReader {
         var arrays: [(String, AnyArrowArrayProtocol)] = []
         for field in fields {
           let array = try loadField(
+            data: data,
             rbMessage: rbMessage,
             field: field,
             offset: offset,
@@ -463,7 +486,7 @@ public struct ArrowReader {
           fields: arrays
         )
       default:
-        throw ArrowError(.notImplemented)
+        throw .init(.notImplemented("\(arrowType)"))
       }
     } else {
       // MARK: Unclassifiable types.
@@ -479,11 +502,11 @@ public struct ArrowReader {
           valueBuffer: valueBufferTyped
         )
       }
-      throw ArrowError(.notImplemented)
+      throw .init(.notImplemented("\(arrowType)"))
     }
   }
 
-  func nextBuffer(
+  static func nextBuffer(
     message: FRecordBatch,
     index: inout Int32,
     offset: Int64,
@@ -505,7 +528,7 @@ public struct ArrowReader {
     return fileDataBuffer
   }
 
-  func makeFixedArray<T>(
+  static func makeFixedArray<T>(
     length: Int,
     elementType: T.Type,
     nullBuffer: NullBuffer,
@@ -521,7 +544,7 @@ public struct ArrowReader {
     )
   }
 
-  func makeListArray<OffsetType>(
+  static func makeListArray<OffsetType>(
     length: Int,
     nullBuffer: NullBuffer,
     offsetsBuffer: any FixedWidthBufferProtocol<OffsetType>,
@@ -535,7 +558,7 @@ public struct ArrowReader {
     )
   }
 
-  private func loadSchema(schema: FSchema) throws(ArrowError) -> ArrowSchema {
+  static func loadSchema(schema: FSchema) throws(ArrowError) -> ArrowSchema {
     let metadata = schema.customMetadata.reduce(into: [String: String]()) {
       dict, kv in
       guard let key = kv.key else { return }
@@ -551,7 +574,7 @@ public struct ArrowReader {
 
   //TODO: This is for the special-case where buffer length 0 means all-zero offset.
   // Would be better to have a specialised empty null buffer
-  func emptyOffsetBuffer(offsetCount: Int) -> FileDataBuffer {
+  static func emptyOffsetBuffer(offsetCount: Int) -> FileDataBuffer {
     let byteCount = offsetCount * MemoryLayout<Int32>.stride
     return FileDataBuffer(
       data: Data(count: byteCount),  // Zero-initialized

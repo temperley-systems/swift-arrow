@@ -21,7 +21,7 @@ public struct ArrowError: Error {
     case outOfBounds(index: Int64)
     case arrayHasNoElements
     case unknownError(String)
-    case notImplemented
+    case notImplemented(String)
     case ioError(String)
     case invalid(String)
   }

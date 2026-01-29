@@ -963,7 +963,7 @@ extension ArrowType {
       case .list(let field):
         return "+l" + (try field.type.cDataFormatId)
       default:
-        throw .init(.notImplemented)
+        throw .init(.notImplemented("cData not implmented for \(self)."))
       }
     }
   }
@@ -1033,6 +1033,6 @@ extension ArrowType {
     } else if from == "u" {
       return .utf8
     }
-    throw .init(.notImplemented)
+    throw .init(.notImplemented("cData not implmented for \(self)."))
   }
 }

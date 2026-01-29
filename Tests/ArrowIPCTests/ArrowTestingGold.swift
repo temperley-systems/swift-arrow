@@ -80,22 +80,35 @@ struct ArrowTestingGold {
   ]
 
   @Test(arguments: testCases)
+  func readStream(name: String) throws {
+    let (testFile, testCase) = try loadTestCase(
+      name: name, fileExtension: "stream")
+    let arrowReader = ArrowStreamReader()
+    let data = try Data(contentsOf: testFile)
+    let recordBatches = try arrowReader.read(data: data)
+    let arrowSchema = arrowReader.arrowSchema!
+    try validateReadResults(
+      testCase: testCase, recordBatches: recordBatches, arrowSchema: arrowSchema
+    )
+  }
+
+  @Test(arguments: testCases)
   func read(name: String) throws {
-    let resourceURL = try loadTestResource(
-      name: name,
-      withExtension: "json.lz4",
-      subdirectory: "integration/cpp-21.0.0"
-    )
-    let lz4Data = try Data(contentsOf: resourceURL)
-    let lz4 = try LZ4(parsing: lz4Data)
-    let testCase = try JSONDecoder().decode(ArrowGold.self, from: lz4.data)
-    let testFile = try loadTestResource(
-      name: name,
-      withExtension: "arrow_file",
-      subdirectory: "integration/cpp-21.0.0"
-    )
+    let (testFile, testCase) = try loadTestCase(
+      name: name, fileExtension: "arrow_file")
     let arrowReader = try ArrowReader(url: testFile)
     let (arrowSchema, recordBatches) = try arrowReader.read()
+    #expect(testCase.batches.count == recordBatches.count)
+    try validateReadResults(
+      testCase: testCase, recordBatches: recordBatches, arrowSchema: arrowSchema
+    )
+  }
+
+  private func validateReadResults(
+    testCase: ArrowGold,
+    recordBatches: [RecordBatch],
+    arrowSchema: ArrowSchema
+  ) throws {
     #expect(testCase.batches.count == recordBatches.count)
     // Strip placeholder values.
     let expectedBatches = testCase.batches.map { batch in

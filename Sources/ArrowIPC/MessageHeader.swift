@@ -12,25 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-public struct ArrowError: Error {
+import Arrow
+import BinaryParsing
 
-  public enum ErrorType: Equatable, Sendable {
-    case none
-    case unknownType(String)
-    case runtimeError(String)
-    case outOfBounds(index: Int64)
-    case arrayHasNoElements
-    case unknownError(String)
-    case notImplemented(String)
-    case ioError(String)
-    case invalid(String)
-  }
+struct MessageHeader {
+  let metadataLength: UInt32
+  var isEndOfStream: Bool { metadataLength == 0 }
 
-  let type: ErrorType
-  let underlyingError: Error?
-
-  public init(_ type: ErrorType, underlyingError: Error? = nil) {
-    self.type = type
-    self.underlyingError = underlyingError
+  @inlinable
+  init(parsing input: inout ParserSpan) throws {
+    let continuation = try UInt32(parsingLittleEndian: &input)
+    guard continuation == continuationMarker else {
+      throw ArrowError(.invalid("Missing continuation marker."))
+    }
+    self.metadataLength = try UInt32(parsingLittleEndian: &input)
   }
 }

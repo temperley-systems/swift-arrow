@@ -227,8 +227,12 @@ extension ArrowType {
       name = "bool"
     case .binary:
       name = "binary"
+    case .largeBinary:
+      name = "largebinary"
     case .utf8:
       name = "utf8"
+    case .largeUtf8:
+      name = "largeutf8"
     case .binaryView:
       name = "binaryview"
     case .utf8View:

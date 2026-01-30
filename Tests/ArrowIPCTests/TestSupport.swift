@@ -43,6 +43,27 @@ func loadTestResource(
   }
 }
 
+func loadTestCase(
+  name: String,
+  fileExtension: String
+) throws -> (URL, ArrowGold) {
+
+  let resourceURL = try loadTestResource(
+    name: name,
+    withExtension: "json.lz4",
+    subdirectory: "integration/cpp-21.0.0"
+  )
+  let lz4Data = try Data(contentsOf: resourceURL)
+  let lz4 = try LZ4(parsing: lz4Data)
+  let testCase = try JSONDecoder().decode(ArrowGold.self, from: lz4.data)
+  let testFile = try loadTestResource(
+    name: name,
+    withExtension: fileExtension,
+    subdirectory: "integration/cpp-21.0.0"
+  )
+  return (testFile, testCase)
+}
+
 func checkBoolRecordBatch(recordBatch: RecordBatch) {
 
   #expect(recordBatch.length == 5)

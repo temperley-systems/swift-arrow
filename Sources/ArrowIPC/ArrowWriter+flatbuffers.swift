@@ -57,6 +57,9 @@ extension ArrowWriter {
     } else if case .list(let childField) = field.type {
       let offset = try write(field: childField, to: &fbb)
       fieldsOffset = fbb.createVector(ofOffsets: [offset])
+    } else if case .largeList(let childField) = field.type {
+      let offset = try write(field: childField, to: &fbb)
+      fieldsOffset = fbb.createVector(ofOffsets: [offset])
     } else if case .fixedSizeList(let childField, _) = field.type {
       let offset = try write(field: childField, to: &fbb)
       fieldsOffset = fbb.createVector(ofOffsets: [offset])
@@ -112,10 +115,16 @@ extension ArrowWriter {
       return FFloatingPoint.createFloatingPoint(&fbb, precision: .double)
     case .utf8:
       return FUtf8.endUtf8(&fbb, start: FUtf8.startUtf8(&fbb))
+    case .largeUtf8:
+      return FLargeUtf8.endLargeUtf8(
+        &fbb, start: FLargeUtf8.startLargeUtf8(&fbb))
     case .utf8View:
       return FUtf8View.endUtf8View(&fbb, start: FUtf8View.startUtf8View(&fbb))
     case .binary:
       return FBinary.endBinary(&fbb, start: FBinary.startBinary(&fbb))
+    case .largeBinary:
+      return FLargeBinary.endLargeBinary(
+        &fbb, start: FLargeBinary.startLargeBinary(&fbb))
     case .binaryView:
       return FBinaryView.endBinaryView(
         &fbb, start: FBinaryView.startBinaryView(&fbb))
@@ -173,6 +182,9 @@ extension ArrowWriter {
     case .list:
       let startOffset = FList.startList(&fbb)
       return FList.endList(&fbb, start: startOffset)
+    case .largeList:
+      let startOffset = FLargeList.startLargeList(&fbb)
+      return FLargeList.endLargeList(&fbb, start: startOffset)
     case .fixedSizeList(_, let listSize):
       let startOffset = FFixedSizeList.startFixedSizeList(&fbb)
       FFixedSizeList.add(listSize: listSize, &fbb)

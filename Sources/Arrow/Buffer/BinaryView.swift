@@ -91,7 +91,7 @@
     return view
   }
 
-  /// Create a referenced view (for length > 12) - trivial!
+  /// Create a referenced view (for length > 12) .
   public static func referenced(
     length: Int32,
     prefix: UInt32,
@@ -107,7 +107,6 @@
     view.words[1] = Int32(bitPattern: prefix)
     view.words[2] = bufferIndex
     view.words[3] = offset
-
     return view
   }
 }

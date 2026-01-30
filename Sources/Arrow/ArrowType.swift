@@ -645,7 +645,7 @@ extension ArrowType {
   @inlinable
   public var isVariable: Bool {
     switch self {
-    case .binary, .utf8: true
+    case .binary, .utf8, .largeBinary, .largeUtf8: true
     default: false
     }
   }
@@ -963,7 +963,7 @@ extension ArrowType {
       case .list(let field):
         return "+l" + (try field.type.cDataFormatId)
       default:
-        throw .init(.notImplemented)
+        throw .init(.notImplemented("cData not implmented for \(self)."))
       }
     }
   }
@@ -1033,6 +1033,6 @@ extension ArrowType {
     } else if from == "u" {
       return .utf8
     }
-    throw .init(.notImplemented)
+    throw .init(.notImplemented("cData not implmented for \(self)."))
   }
 }

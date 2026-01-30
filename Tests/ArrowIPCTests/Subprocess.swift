@@ -28,15 +28,14 @@ func pyArrowRoundTrip(ipcData: Data) async throws -> Data {
     arguments: [
       "-c",
       """
-      import pyarrow as pa
       import sys
       from io import BytesIO
 
+      import pyarrow as pa
+
       input_data = sys.stdin.buffer.read()
       buffer = BytesIO(input_data)
-
       reader = pa.ipc.open_file(buffer)
-
       writer = pa.ipc.new_file(sys.stdout.buffer, reader.schema)
       for i in range(reader.num_record_batches):
           batch = reader.get_batch(i)

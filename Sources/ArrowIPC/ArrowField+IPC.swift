@@ -36,12 +36,11 @@ extension ArrowField {
     guard let fieldName = field.name else {
       throw .init(.invalid("Field name not found"))
     }
-    let fieldMetadata = (0..<field.customMetadataCount)
-      .reduce(into: [String: String]()) { dict, index in
-        guard let customMetadata = field.customMetadata(at: index),
-          let key = customMetadata.key
-        else { return }
-        dict[key] = customMetadata.value
+    let fieldMetadata = field.customMetadata
+      .reduce(into: [String: String]()) { dict, kv in
+        let key = kv.key
+        guard let key else { return }
+        dict[key] = kv.value
       }
     return .init(
       name: fieldName,
@@ -99,10 +98,14 @@ extension ArrowType {
       }
     case .utf8:
       return .utf8
+    case .largeutf8:
+      return .largeUtf8
     case .utf8view:
       return .utf8View
     case .binary:
       return .binary
+    case .largebinary:
+      return .largeBinary
     case .binaryview:
       return .binaryView
     case .fixedsizebinary:
@@ -167,46 +170,49 @@ extension ArrowType {
         throw .init(.invalid("Could not get struct type from field"))
       }
       var fields: [ArrowField] = []
-      for index in 0..<field.childrenCount {
-        guard let childField = field.children(at: index) else {
-          throw .init(
-            .invalid("Could not get child at index: \(index) ofrom struct"))
-        }
-        let arrowField = try ArrowField.parse(from: childField)
+      for child in field.children {
+        let arrowField = try ArrowField.parse(from: child)
         fields.append(arrowField)
       }
       return .strct(fields)
     case .list:
-      guard field.childrenCount == 1, let childField = field.children(at: 0)
-      else {
+      guard field.children.count == 1 else {
         throw .init(.invalid("Expected list field to have exactly one child"))
       }
+      let childField = field.children[0]
       let arrowField = try ArrowField.parse(from: childField)
       return .list(arrowField)
+    case .largelist:
+      guard field.children.count == 1 else {
+        throw .init(.invalid("Expected list field to have exactly one child"))
+      }
+      let childField = field.children[0]
+      let arrowField = try ArrowField.parse(from: childField)
+      return .largeList(arrowField)
     case .fixedsizelist:
-      guard field.childrenCount == 1, let childField = field.children(at: 0)
-      else {
+      guard field.children.count == 1 else {
         throw .init(
           .invalid(
-            "Expected list field to have exactly one child. Found: \(field.childrenCount) children"
+            "Expected list field to have exactly one child. Found: \(field.children.count) children"
           ))
       }
       guard let fType = field.type(type: FFixedSizeList.self) else {
         throw .init(.invalid("Could not get type from fixed size list field."))
       }
       let listSize = fType.listSize
-      let arrowField = try ArrowField.parse(from: childField)
+      let child = field.children[0]
+      let arrowField = try ArrowField.parse(from: child)
       return .fixedSizeList(arrowField, listSize)
     case .map:
       guard let fType = field.type(type: FMap.self) else {
         throw .init(.invalid("Could not get type from map field."))
       }
       let keysSorted = fType.keysSorted
-      guard field.childrenCount == 1, let childField = field.children(at: 0)
-      else {
+      guard field.children.count == 1 else {
         throw .init(.invalid("Expected map field to have exactly one child."))
       }
-      let arrowField = try ArrowField.parse(from: childField)
+      let child = field.children[0]
+      let arrowField = try ArrowField.parse(from: child)
       guard case .strct(let fields) = arrowField.type, fields.count == 2 else {
         throw .init(
           .invalid("Map child must be a struct with key and value fields."))
@@ -227,10 +233,14 @@ extension ArrowType {
       return .floatingpoint
     case .binary:
       return .binary
+    case .largeBinary:
+      return .largebinary
     case .binaryView:
       return .binaryview
     case .utf8:
       return .utf8
+    case .largeUtf8:
+      return .largeutf8
     case .utf8View:
       return .utf8view
     case .boolean:
@@ -247,6 +257,8 @@ extension ArrowType {
       return .struct_
     case .list:
       return .list
+    case .largeList:
+      return .largelist
     case .map:
       return .map
     case .fixedSizeBinary:

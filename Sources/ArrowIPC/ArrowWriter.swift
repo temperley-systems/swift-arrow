@@ -302,6 +302,7 @@ public struct ArrowWriter {
   ///   - fields: The Arrow fields.
   ///   - arrays: The Arrow arrays.
   ///   - nodes: The field node array being written to.
+  /// - Throws: An `ArrowError` if a field type is not handled.
   private func writeFieldNodes(
     fields: [ArrowField],
     arrays: [AnyArrowArrayProtocol],

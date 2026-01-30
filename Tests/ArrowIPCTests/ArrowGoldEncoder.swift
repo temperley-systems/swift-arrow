@@ -39,12 +39,12 @@ func encodeColumn(
   // public API would mean replicating edge cases here.
   let offsets: [Int64]? =
     switch field.type {
-    case .binary, .utf8, .list(_), .map(_, _):
+    case .binary, .utf8, .list, .map:
       array.buffers[1].withUnsafeBytes { ptr in
         let offsets = ptr.bindMemory(to: Int32.self)
         return Array(offsets).map(Int64.init)
       }
-    case .largeBinary, .largeUtf8, .largeList(_):
+    case .largeBinary, .largeUtf8, .largeList:
       array.buffers[1].withUnsafeBytes { ptr in
         let offsets = ptr.bindMemory(to: Int64.self)
         return Array(offsets)
@@ -62,105 +62,102 @@ func encodeColumn(
     data = nil
   }
   var children: [ArrowGold.Column]? = nil
-  if array.length > 0 {
-    switch field.type {
-    case .list(let listField), .map(let listField, _):
-      guard let listArray = array as? ListArrayProtocol else {
-        throw .init(.invalid("Expected list array."))
-      }
-      let childColumn = try encodeColumn(
-        array: listArray.values, field: listField)
-      children = [childColumn]
-      // List arrays point to child arrays therefore have nil data buffers.
-      data = nil
-    case .fixedSizeList(let listField, _):
-      guard let listArray = array as? ListArrayProtocol else {
-        throw .init(.invalid("Expected fixed-size list array."))
-      }
-      let childColumn = try encodeColumn(
-        array: listArray.values, field: listField)
-      children = [childColumn]
-      data = nil
-    case .strct(let arrowFields):
-      guard let structArray = array as? ArrowStructArray else {
-        throw .init(.invalid("Expected struct array."))
-      }
-      children = []
-      for (arrowField, (_, array)) in zip(arrowFields, structArray.fields) {
-        let childColumn = try encodeColumn(
-          array: array, field: arrowField)
-        children?.append(childColumn)
-        data = nil
-      }
-      children = try arrowFields.enumerated().map {
-        index, arrowField throws(ArrowError) in
-        try encodeColumn(array: structArray.fields[index].1, field: arrowField)
-      }
-      data = nil
-    case .boolean:
-      data = try extractBoolData(from: array)
-    case .int8:
-      data = try extractIntData(from: array, expectedType: Int8.self)
-    case .int16:
-      data = try extractIntData(from: array, expectedType: Int16.self)
-    case .int32:
-      data = try extractIntData(from: array, expectedType: Int32.self)
-    case .int64:
-      data = try extractIntData(from: array, expectedType: Int64.self)
-    case .uint8:
-      data = try extractIntData(from: array, expectedType: UInt8.self)
-    case .uint16:
-      data = try extractIntData(from: array, expectedType: UInt16.self)
-    case .uint32:
-      data = try extractIntData(from: array, expectedType: UInt32.self)
-    case .uint64:
-      data = try extractIntData(from: array, expectedType: UInt64.self)
-    case .float16:
-      data = try extractFloatData(from: array, expectedType: Float16.self)
-    case .float32:
-      data = try extractFloatData(from: array, expectedType: Float32.self)
-    case .float64:
-      data = try extractFloatData(from: array, expectedType: Float64.self)
-    case .time32(_):
-      data = try extractIntData(from: array, expectedType: UInt32.self)
-    case .date32:
-      data = try extractIntData(from: array, expectedType: Int32.self)
-    case .date64:
-      data = try extractIntData(from: array, expectedType: Int64.self)
-    case .time64(_):
-      data = try extractIntData(from: array, expectedType: UInt64.self)
-    case .timestamp(_, _):
-      data = try extractIntData(from: array, expectedType: Int64.self)
-    case .duration(_):
-      data = try extractIntData(from: array, expectedType: Int64.self)
-    case .interval(.yearMonth):
-      data = try extractIntData(from: array, expectedType: Int32.self)
-    case .interval(.dayTime):
-      data = try extractIntData(from: array, expectedType: Int64.self)
-    case .interval(.monthDayNano):
-      // This is tricky - 128 bits (4 + 4 + 8 bytes)
-      // Might need special handling or extract as raw bytes
-      data = try extractIntData(from: array, expectedType: Int64.self)
-    case .binary:
-      try extractBinaryData(from: array, into: &data)
-    case .largeBinary:
-      try extractBinaryData(from: array, into: &data)
-    case .fixedSizeBinary(_):
-      try extractBinaryData(from: array, into: &data)
-    case .utf8:
-      try extractUtf8Data(from: array, into: &data)
-    case .largeUtf8:
-      try extractUtf8Data(from: array, into: &data)
-    case .binaryView, .utf8View:
-      try extractBinaryViewData(
-        from: array,
-        into: &views,
-        variadicDataBuffers: &variadicDataBuffers
-      )
-    default:
-      throw .init(
-        .invalid("Encoder did not handle a field type: \(field.type)"))
+  switch field.type {
+  case .list(let listField),
+    .largeList(let listField),
+    .map(let listField, _),
+    .fixedSizeList(let listField, _):
+    guard let listArray = array as? ListArrayProtocol else {
+      throw .init(.invalid("Expected list array."))
     }
+    let childColumn = try encodeColumn(
+      array: listArray.values,
+      field: listField
+    )
+    children = [childColumn]
+    // List arrays point to child arrays therefore have nil data buffers.
+    data = nil
+  case .strct(let arrowFields):
+    guard let structArray = array as? ArrowStructArray else {
+      throw .init(.invalid("Expected struct array."))
+    }
+    children = []
+    for (arrowField, (_, array)) in zip(arrowFields, structArray.fields) {
+      let childColumn = try encodeColumn(
+        array: array,
+        field: arrowField
+      )
+      children?.append(childColumn)
+      data = nil
+    }
+    children = try arrowFields.enumerated().map {
+      index, arrowField throws(ArrowError) in
+      try encodeColumn(array: structArray.fields[index].1, field: arrowField)
+    }
+    data = nil
+  case .boolean:
+    data = try extractBoolData(from: array)
+  case .int8:
+    data = try extractIntData(from: array, expectedType: Int8.self)
+  case .int16:
+    data = try extractIntData(from: array, expectedType: Int16.self)
+  case .int32:
+    data = try extractIntData(from: array, expectedType: Int32.self)
+  case .int64:
+    data = try extractIntData(from: array, expectedType: Int64.self)
+  case .uint8:
+    data = try extractIntData(from: array, expectedType: UInt8.self)
+  case .uint16:
+    data = try extractIntData(from: array, expectedType: UInt16.self)
+  case .uint32:
+    data = try extractIntData(from: array, expectedType: UInt32.self)
+  case .uint64:
+    data = try extractIntData(from: array, expectedType: UInt64.self)
+  case .float16:
+    data = try extractFloatData(from: array, expectedType: Float16.self)
+  case .float32:
+    data = try extractFloatData(from: array, expectedType: Float32.self)
+  case .float64:
+    data = try extractFloatData(from: array, expectedType: Float64.self)
+  case .time32(_):
+    data = try extractIntData(from: array, expectedType: UInt32.self)
+  case .date32:
+    data = try extractIntData(from: array, expectedType: Int32.self)
+  case .date64:
+    data = try extractIntData(from: array, expectedType: Int64.self)
+  case .time64(_):
+    data = try extractIntData(from: array, expectedType: UInt64.self)
+  case .timestamp(_, _):
+    data = try extractIntData(from: array, expectedType: Int64.self)
+  case .duration(_):
+    data = try extractIntData(from: array, expectedType: Int64.self)
+  case .interval(.yearMonth):
+    data = try extractIntData(from: array, expectedType: Int32.self)
+  case .interval(.dayTime):
+    data = try extractIntData(from: array, expectedType: Int64.self)
+  case .interval(.monthDayNano):
+    // This is tricky - 128 bits (4 + 4 + 8 bytes)
+    // Might need special handling or extract as raw bytes
+    data = try extractIntData(from: array, expectedType: Int64.self)
+  case .binary:
+    try extractBinaryData(from: array, into: &data)
+  case .largeBinary:
+    try extractBinaryData(from: array, into: &data)
+  case .fixedSizeBinary(_):
+    try extractBinaryData(from: array, into: &data)
+  case .utf8:
+    try extractUtf8Data(from: array, into: &data)
+  case .largeUtf8:
+    try extractUtf8Data(from: array, into: &data)
+  case .binaryView, .utf8View:
+    try extractBinaryViewData(
+      from: array,
+      into: &views,
+      variadicDataBuffers: &variadicDataBuffers
+    )
+  default:
+    throw .init(
+      .invalid("Encoder did not handle a field type: \(field.type)"))
   }
   return .init(
     name: field.name,

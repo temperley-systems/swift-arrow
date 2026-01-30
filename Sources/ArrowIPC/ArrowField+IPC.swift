@@ -182,6 +182,13 @@ extension ArrowType {
       let childField = field.children[0]
       let arrowField = try ArrowField.parse(from: childField)
       return .list(arrowField)
+    case .largelist:
+      guard field.children.count == 1 else {
+        throw .init(.invalid("Expected list field to have exactly one child"))
+      }
+      let childField = field.children[0]
+      let arrowField = try ArrowField.parse(from: childField)
+      return .largeList(arrowField)
     case .fixedsizelist:
       guard field.children.count == 1 else {
         throw .init(

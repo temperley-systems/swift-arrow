@@ -30,15 +30,17 @@ struct ArrowTestingGold {
 
   static let testCases: [String] = [
     "generated_binary",
-    "generated_binary_view",
     "generated_binary_no_batches",
+    "generated_binary_view",
     "generated_binary_zerolength",
     "generated_custom_metadata",
+    "generated_datetime",
     "generated_nested",
+    //    "generated_nested_large_offsets",
     "generated_recursive_nested",
     "generated_large_binary",
     "generated_map",
-    "generated_datetime",
+    //    "generated_map_non_canonical",
     "generated_duration",
     "generated_primitive",
     "generated_primitive_no_batches",
@@ -84,7 +86,7 @@ struct ArrowTestingGold {
   @Test
   func readFile() throws {
 
-    let name = "generated_large_binary"
+    let name = "generated_nested_large_offsets"
     let (testFile, testCase) = try loadTestCase(
       name: name, fileExtension: "arrow_file")
     let arrowReader = try ArrowReader(url: testFile)

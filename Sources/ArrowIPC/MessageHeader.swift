@@ -18,11 +18,11 @@ import BinaryParsing
 struct MessageHeader {
   let metadataLength: UInt32
   var isEndOfStream: Bool { metadataLength == 0 }
-  
+
   @inlinable
   init(parsing input: inout ParserSpan) throws {
     let continuation = try UInt32(parsingLittleEndian: &input)
-    guard continuation == continuationMarker else  {
+    guard continuation == continuationMarker else {
       throw ArrowError(.invalid("Missing continuation marker."))
     }
     self.metadataLength = try UInt32(parsingLittleEndian: &input)

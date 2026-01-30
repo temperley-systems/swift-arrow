@@ -465,7 +465,59 @@ public struct ArrowReader {
           }
           // Verify last offset matches child array length
           let lastOffset = offsetsBuffer[length]
-          guard lastOffset == Int32(array.length) else {
+          guard lastOffset == array.length else {
+            throw ArrowError(
+              .invalid(
+                "Expected last offset to match child array length."))
+          }
+        }
+        return makeListArray(
+          length: length,
+          nullBuffer: nullBuffer,
+          offsetsBuffer: offsetsBuffer,
+          values: array
+        )
+      case .largeList(let childField):
+        let buffer1 = try nextBuffer(
+          message: rbMessage, index: &bufferIndex, offset: offset, data: data)
+        var offsetsBuffer = FixedWidthBufferIPC<Int64>(
+          buffer: buffer1
+        )
+
+        let array: AnyArrowArrayProtocol = try loadField(
+          data: data,
+          rbMessage: rbMessage,
+          field: childField,
+          offset: offset,
+          nodeIndex: &nodeIndex,
+          bufferIndex: &bufferIndex,
+          variadicBufferIndex: &variadicBufferIndex
+        )
+
+        if offsetsBuffer.length == 0 {
+          // Empty offsets buffer is valid when child array is empty
+          // There could be any number of empty lists referencing into an empty list
+          guard array.length == 0 else {
+            throw .init(
+              .invalid("Empty offsets buffer but non-empty child array")
+            )
+          }
+          let emptyBuffer = emptyOffsetBuffer(offsetCount: length + 1)
+          offsetsBuffer = FixedWidthBufferIPC<Int64>(
+            buffer: emptyBuffer
+          )
+        } else {
+          let requiredBytes = (length + 1) * MemoryLayout<Int64>.stride
+          guard offsetsBuffer.length >= requiredBytes else {
+            throw ArrowError(
+              .invalid(
+                "Offsets buffer of length: \(offsetsBuffer.length) too small: need \(requiredBytes) bytes for \(length) lists"
+              )
+            )
+          }
+          // Verify last offset matches child array length
+          let lastOffset = offsetsBuffer[length]
+          guard lastOffset == array.length else {
             throw ArrowError(
               .invalid(
                 "Expected last offset to match child array length."))
@@ -603,6 +655,9 @@ public struct ArrowReader {
   // Would be better to have a specialised empty null buffer
   static func emptyOffsetBuffer(offsetCount: Int) -> FileDataBuffer {
     let byteCount = offsetCount * MemoryLayout<Int32>.stride
+    if offsetCount > 0 {
+      fatalError()
+    }
     return FileDataBuffer(
       data: Data(count: byteCount),  // Zero-initialized
       range: 0..<byteCount

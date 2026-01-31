@@ -38,7 +38,7 @@ struct TableTests {
   }
 
   @Test func table() throws {
-    let doubleBuilder: ArrayBuilderFixedWidth<Double> = .init()
+    let doubleBuilder: ArrayBuilderNumeric<Double> = .init()
     doubleBuilder.append(11.11)
     doubleBuilder.append(22.22)
     let stringBuilder = ArrayBuilderVariableLength<String, Int32>()
@@ -86,12 +86,12 @@ struct TableTests {
   }
 
   @Test func tableWithChunkedData() throws {
-    let uint8Builder: ArrayBuilderFixedWidth<UInt8> = .init()
+    let uint8Builder: ArrayBuilderNumeric<UInt8> = .init()
     uint8Builder.append(10)
     uint8Builder.append(22)
-    let uint8Builder2: ArrayBuilderFixedWidth<UInt8> = .init()
+    let uint8Builder2: ArrayBuilderNumeric<UInt8> = .init()
     uint8Builder2.append(33)
-    let uint8Builder3: ArrayBuilderFixedWidth<UInt8> = .init()
+    let uint8Builder3: ArrayBuilderNumeric<UInt8> = .init()
     uint8Builder3.append(44)
     let stringBuilder = ArrayBuilderVariableLength<String, Int32>()
     stringBuilder.append("test10")

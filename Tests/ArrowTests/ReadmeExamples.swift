@@ -21,7 +21,7 @@ struct ReadmeExamples {
 
   @Test func int8Array() throws {
     let swiftArray: [Int8?] = [1, nil, 2, 3, nil, 4]
-    let arrayBuilder: ArrayBuilderFixedWidth<Int8> = .init()
+    let arrayBuilder: ArrayBuilderNumeric<Int8> = .init()
     for value in swiftArray {
       if let value {
         arrayBuilder.append(value)

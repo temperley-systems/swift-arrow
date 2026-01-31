@@ -75,7 +75,7 @@ public class ArrayBuilderBoolean: AnyArrayBuilder {
 }
 
 /// A builder for Arrow arrays holding fixed-width types.
-public class ArrayBuilderFixedWidth<T: Numeric & BitwiseCopyable>:
+public class ArrayBuilderNumeric<T: Numeric & BitwiseCopyable>:
   AnyArrayBuilder
 {
 
@@ -234,7 +234,7 @@ typealias ArrayBuilderBinary = ArrayBuilderVariableLength<Data, Int32>
 /// A builder for Arrow arrays holding `Date`s with a resolution of one day.
 public struct ArrayBuilderDate32: AnyArrayBuilder {
   public typealias ArrayType = ArrowArrayDate32
-  let builder: ArrayBuilderFixedWidth<Date32> = .init()
+  let builder: ArrayBuilderNumeric<Date32> = .init()
 
   public init() {}
 
@@ -259,7 +259,7 @@ public struct ArrayBuilderDate32: AnyArrayBuilder {
 /// A builder for Arrow arrays holding `Date`s with a resolution of one day.
 public struct ArrayBuilderDate64: AnyArrayBuilder {
   public typealias ArrayType = ArrowArrayDate64
-  let builder: ArrayBuilderFixedWidth<Date64> = .init()
+  let builder: ArrayBuilderNumeric<Date64> = .init()
 
   public init() {}
 
@@ -282,13 +282,13 @@ public struct ArrayBuilderDate64: AnyArrayBuilder {
 }
 
 /// A builder for Arrow arrays holding Time32 values.
-public typealias ArrayBuilderTime32 = ArrayBuilderFixedWidth<Time32>
+public typealias ArrayBuilderTime32 = ArrayBuilderNumeric<Time32>
 
 /// A builder for Arrow arrays holding Time64 values.
-public typealias ArrayBuilderTime64 = ArrayBuilderFixedWidth<Time64>
+public typealias ArrayBuilderTime64 = ArrayBuilderNumeric<Time64>
 
 /// A builder for Arrow arrays holding Timestamp values.
-public typealias ArrayBuilderTimestamp = ArrayBuilderFixedWidth<Timestamp>
+public typealias ArrayBuilderTimestamp = ArrayBuilderNumeric<Timestamp>
 
 public class ArrayBuilderList<T: AnyArrayBuilder> {
 

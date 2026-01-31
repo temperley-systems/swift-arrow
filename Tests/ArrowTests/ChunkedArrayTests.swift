@@ -38,7 +38,7 @@ struct ChunkedArrayTests {
         : (remaining <= numChunks - chunks.count)
           ? 1 : Int.random(in: 1...(remaining - (numChunks - chunks.count - 1)))
 
-      let builder = ArrayBuilderFixedWidth<Int32>()
+      let builder = ArrayBuilderNumeric<Int32>()
       for i in 0..<chunkSize {
         let val = flatArray[offset + i]
         if let val {
@@ -72,7 +72,7 @@ struct ChunkedArrayTests {
       var flatArray: [Int32?] = []
       var chunks: [any ArrowArrayProtocol<Int32>] = []
       for chunkIdx in 0..<10 {
-        let builder = ArrayBuilderFixedWidth<Int32>()
+        let builder = ArrayBuilderNumeric<Int32>()
         for i in 0..<size {
           let value = Int32(chunkIdx * size + i)
           flatArray.append(value)

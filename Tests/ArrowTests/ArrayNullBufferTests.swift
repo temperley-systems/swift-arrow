@@ -21,7 +21,7 @@ struct ArrayNullBufferTests {
 
   @Test func allValidValues() throws {
     // Should be able to omit null buffer entirely
-    let arrayBuilder: ArrayBuilderFixedWidth<Int64> = .init()
+    let arrayBuilder: ArrayBuilderNumeric<Int64> = .init()
     for i in 0..<1000 {
       arrayBuilder.append(Int64(i))  // No nulls
     }
@@ -35,7 +35,7 @@ struct ArrayNullBufferTests {
   }
 
   @Test func allNullValues() throws {
-    let arrayBuilder: ArrayBuilderFixedWidth<Int64> = .init()
+    let arrayBuilder: ArrayBuilderNumeric<Int64> = .init()
     for _ in 0..<1000 {
       arrayBuilder.appendNull()
     }

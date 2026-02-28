@@ -21,7 +21,7 @@ struct ListArrayTests {
 
   @Test func int32Example() {
     let builder = ArrayBuilderList(
-      valueBuilder: ArrayBuilderFixedWidth<Int32>())
+      valueBuilder: ArrayBuilderNumeric<Int32>())
 
     builder.append { childBuilder in
       childBuilder.append(1)

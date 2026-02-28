@@ -18,7 +18,7 @@ import Testing
 struct RecordBatchTests {
 
   @Test func recordBatch() throws {
-    let uint8Builder = ArrayBuilderFixedWidth<UInt8>()
+    let uint8Builder = ArrayBuilderNumeric<UInt8>()
     uint8Builder.append(10)
     uint8Builder.append(22)
     uint8Builder.appendNull()

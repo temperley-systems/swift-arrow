@@ -26,7 +26,7 @@ struct FuzzedArrayTests {
     for i in 0..<expected.count {
       expected[i] = Int64.random(in: Int64.min...Int64.max, using: &rng)
     }
-    let arrayBuilder: ArrayBuilderFixedWidth<Int64> = .init()
+    let arrayBuilder: ArrayBuilderNumeric<Int64> = .init()
     for i in 0..<expected.count {
       arrayBuilder.append(expected[i])
     }
@@ -183,7 +183,7 @@ struct FuzzedArrayTests {
         nullCount += 1
       }
     }
-    let builder: ArrayBuilderFixedWidth<Int64> = .init()
+    let builder: ArrayBuilderNumeric<Int64> = .init()
     for value in expected {
       if let value {
         builder.append(value)
@@ -325,7 +325,7 @@ struct FuzzedArrayTests {
       }
       i += runLength
     }
-    let builder: ArrayBuilderFixedWidth<Int64> = .init()
+    let builder: ArrayBuilderNumeric<Int64> = .init()
     for value in expected {
       if let value {
         builder.append(value)

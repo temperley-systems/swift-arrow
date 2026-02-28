@@ -38,7 +38,7 @@ struct BasicArrayTests {
   }
 
   @Test func uint8Array() throws {
-    let arrayBuilder: ArrayBuilderFixedWidth<UInt8> = .init()
+    let arrayBuilder: ArrayBuilderNumeric<UInt8> = .init()
     for index: UInt8 in 0..<100 {
       arrayBuilder.append(index)
     }
@@ -105,7 +105,7 @@ struct BasicArrayTests {
   }
 
   @Test func doubleArray() throws {
-    let builder: ArrayBuilderFixedWidth<Double> = .init()
+    let builder: ArrayBuilderNumeric<Double> = .init()
     builder.append(14)
     builder.appendNull()
     builder.append(40.4)

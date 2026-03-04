@@ -34,4 +34,10 @@ public class ArrowColumn {
         .runtimeError("Could not cast array holder to chunked array."))
     }
   }
+
+  /// Return the data as a chunked array, cast to the type.
+  /// - Returns: The chunked array or nil if the array cannot be cast to the inferred type.
+  public func array<T>() -> ChunkedArray<T>? {
+    self.dataHolder as? ChunkedArray<T>
+  }
 }

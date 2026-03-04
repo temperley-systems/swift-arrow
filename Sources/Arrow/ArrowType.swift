@@ -699,7 +699,10 @@ extension ArrowType {
         && aField.type.equalsDataType(bField.type) && aSorted == bSorted
 
     // Dictionary
-    case (.dictionary(_, _, let aKey, let aValue), .dictionary(_, _, let bKey, let bValue)):
+    case (
+      .dictionary(_, _, let aKey, let aValue),
+      .dictionary(_, _, let bKey, let bValue)
+    ):
       // Ignoring dictionary id here.
       return aKey.equalsDataType(bKey) && aValue.equalsDataType(bValue)
 

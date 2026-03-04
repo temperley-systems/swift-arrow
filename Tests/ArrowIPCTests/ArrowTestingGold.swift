@@ -82,7 +82,7 @@ struct ArrowTestingGold {
     "generated_union",
   ]
 
-//  @Test
+  //  @Test
   func readFile() throws {
 
     let name = "generated_dictionary"

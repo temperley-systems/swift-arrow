@@ -74,20 +74,20 @@ extension ArrowField {
     )
   }
 
-//  /// Create a new `ArrowField` suitable for `ArrowType::Dictionary`.
-//  public init(
-//    dictWithName: String,
-//    key: ArrowType,
-//    value: ArrowType,
-//    isNullable: Bool
-//  ) {
-//    precondition(
-//      key.isDictionaryKeyType,
-//      "\(key) is not a valid dictionary key"
-//    )
-//    let dataType: ArrowType = .dictionary(key, value)
-//    self = Self(name: dictWithName, dataType: dataType, isNullable: isNullable)
-//  }
+  //  /// Create a new `ArrowField` suitable for `ArrowType::Dictionary`.
+  //  public init(
+  //    dictWithName: String,
+  //    key: ArrowType,
+  //    value: ArrowType,
+  //    isNullable: Bool
+  //  ) {
+  //    precondition(
+  //      key.isDictionaryKeyType,
+  //      "\(key) is not a valid dictionary key"
+  //    )
+  //    let dataType: ArrowType = .dictionary(key, value)
+  //    self = Self(name: dictWithName, dataType: dataType, isNullable: isNullable)
+  //  }
 
   /// Create a new struct `ArrowField`.
   ///
